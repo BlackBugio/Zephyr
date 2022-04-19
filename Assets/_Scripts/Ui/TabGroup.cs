@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 
 public class TabGroup : MonoBehaviour
@@ -12,6 +13,7 @@ public class TabGroup : MonoBehaviour
     public Sprite tabIdle;
     public TabButton selectedTab;
     public List<GameObject> objectsToSwap;
+    public PanelGroup panelGroup;
 
     public delegate void TabActive(int tabIndex);
     public static event TabActive OnTabActive;
@@ -73,6 +75,10 @@ public class TabGroup : MonoBehaviour
             }
             else objectsToSwap[i].SetActive(false);
         }        
+        if (panelGroup != null)
+        {
+            panelGroup.SetPageIndex(selectedTab.transform.GetSiblingIndex());
+        }
     }
 
     public void ResetTabs()

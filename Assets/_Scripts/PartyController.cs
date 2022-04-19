@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public class PartyController : MonoBehaviour
 {
     private protected UiController uc;
+    private protected WebTest wc;
     public PartyBase selectedParty;
     public TabGroup tabGroup;
 
@@ -14,19 +18,24 @@ public class PartyController : MonoBehaviour
     private const int maxPartySlots = 4;
     private const int maxPartyQuant = 5;
 
-    //public delegate void PartyUpdate(float partyPower);
-    //public static event PartyUpdate OnPartyUpdate;
+    public delegate void GotCharID(int characterID);
+    public static event GotCharID OnGotCharID;
 
-    void Start()
+    private class ArrayID
+    {
+       public int characterID;
+    }
+
+    private void Start()
     {
         DungeonController.OnPartyInDungeon += PartyEnteredDungeon;
         uc = GetComponent<UiController>();
+        wc = GetComponent<WebTest>();
         uc.AddToParty.onClick.AddListener(AddActivePartyGrid);
-        uc.RemoveFromParty.onClick.AddListener(RemoveActivePartyGrid);
-        //uc.CloseParty.onClick.AddListener(delegate { CloseParty(activeParty); });
-        //uc.EditParty.onClick.AddListener(delegate { EditParty(uc.selectedParty); });
-
+        uc.RemoveFromParty.onClick.AddListener(RemoveActivePartyGrid);      
         TabGroup.OnTabActive += GetPartySlotChange;
+        WebTest.OnTryGetChar += GetServerChar;
+
 
         for (int i = 0; i < maxPartySlots; i++)
         {
@@ -34,6 +43,52 @@ public class PartyController : MonoBehaviour
         }
         selectedParty = PartySlots[0];
         DropsController.OnChardroped += GenerateMysteryBoxChar;
+    }
+
+    private void GetServerChar(string message)
+    {
+        StartCoroutine(ReadServerChar(message));
+    }
+
+    //le a linha de json enviada pelo server e converte em um personagem na lista total
+    public IEnumerator ReadServerChar(string message)
+    {
+        bool isDone = false;
+        string stringJson = "";
+        System.Action<string> getCharCallBack = (wwwcalback) => { isDone = true; stringJson = wwwcalback; };
+        JArray a = JArray.Parse(message);
+        for (int i = 0; i < a.Count; i++)
+        {
+            isDone = false;
+            string cD = a[i].ToString();
+            ArrayID aID = JsonConvert.DeserializeObject<ArrayID>(cD);            
+            //callback da coroutine getcharacter            
+            StartCoroutine(wc.GetCharacter(aID.characterID, getCharCallBack));            
+            yield return new WaitUntil(() => isDone == true); //espera carregar chars
+            string charString = stringJson;// Debug.Log(charString);         
+            // getattributes
+            isDone = false;            
+            StartCoroutine(wc.GetAttributes(aID.characterID, getCharCallBack));
+            yield return new WaitUntil(() => isDone == true);  //espera carregar attribs
+            string attribs = stringJson;// Debug.Log(attribs);
+            // getstats
+            isDone = false;
+            StartCoroutine(wc.GetStats(aID.characterID, getCharCallBack));
+            yield return new WaitUntil(() => isDone == true); //espera carregar stats
+            string statsString = stringJson;// Debug.Log(statsString);
+            CharBase newchar = JsonConvert.DeserializeObject<CharBase>(charString) as CharBase;
+            JObject rss = JObject.Parse(statsString);
+            newchar.HP = (int)rss["hp"];
+            newchar.MP = (int)rss["mp"];
+            newchar.charLevel = (int)rss["charlevel"];
+            newchar.charXP = (int)rss["xp"];
+            newchar.charFatigue = (int)rss["fatigue"];
+            newchar.FillAttributesAndActions(attribs, false);
+            newchar.SetRole(newchar.charClass);
+            uc.AddGrid(newchar, uc.mainCharGrid, TotalParty, true);
+            stringJson = "";
+        }
+
     }
 
     public void AddActivePartyGrid()
@@ -68,7 +123,7 @@ public class PartyController : MonoBehaviour
     {
         selectedParty = PartySlots[tabIndex];
         UpdatePartyPower();
-        Debug.Log(selectedParty.index);
+        //Debug.Log(selectedParty.index);
     }
 
     public void UpdatePartyPower()

@@ -1,13 +1,36 @@
+using System;
+using UnityEngine;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+
+
+[System.Serializable]
 public class CharSkill
 {
-    private string SkillName { get; set; }
-    private int SkillCost { get; set; }
-    private int SkillLevel { get; set; }
+    public string skillId { get; set; }
+    public string skillName { get; set; }
+    public int skillCost { get; set; }
+    public int skillLevel { get; set; }
+    public SkillType skillType { get; set; }
 
-    public CharSkill(string name, int cost, int level)
+    public bool skillActive;
+    public int effectDuration;
+
+    public Dictionary<Attributes, int> skillEffects = new Dictionary<Attributes, int>();
+
+    public enum SkillType { AttribBonus, Self, Target, Group}
+
+    public CharSkill(int id, string name, int cost, int level, int type, Dictionary<Attributes, int> effects)
     {
-        SkillName = name;
-        SkillCost = cost;
-        SkillLevel = level;
+        skillId = skillId;
+        skillName = name;
+        skillCost = cost;
+        skillLevel = level;
+        skillType = (SkillType)type;
+
+        foreach (KeyValuePair<Attributes, int> a in effects)
+        {
+            skillEffects.Add(a.Key, a.Value);
+        }
     }
 }

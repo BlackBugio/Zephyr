@@ -44,9 +44,9 @@ public class PartyBase
 
         foreach (CharBase c in CharInParty)
         {
-            partyLevel += c.level;
-            partyRarity += (int)c.rarity;
-            switch (c.role)
+            partyLevel += c.charLevel;
+            partyRarity += (int)c.charRarity;
+            switch (c.charRole)
             {
                 case CharBase.Roles.Controller: bonusController = true; continue;
                 case CharBase.Roles.DPS: bonusDPS = true; continue;

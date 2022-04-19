@@ -10,6 +10,7 @@ public class TabButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandl
 {
     public TabGroup tabGroup;
     public Image background;
+    public string tabButtonText;
     public bool occupied = false;
 
     public UnityEvent onTabSelected;
@@ -20,6 +21,7 @@ public class TabButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandl
     void Start()
     {
         background = GetComponent<Image>();
+        transform.Find("Text").GetComponent<TMPro.TextMeshProUGUI>().text = tabButtonText;
     }
 
     #region PointerHandle

@@ -9,6 +9,7 @@ public class DungeonController : MonoBehaviour
     UiController uc;
     PartyController pc;
     DropsController dc;
+    BattleController bc;
     Dictionary<PartyBase, DungeonBase> InDungeon = new Dictionary<PartyBase, DungeonBase>(); // avaliar uso
     List<PartyBase> InDungeonParty = new List<PartyBase>();
     System.Random r;
@@ -22,9 +23,16 @@ public class DungeonController : MonoBehaviour
         uc = GetComponent<UiController>();
         dc = GetComponent<DropsController>();
         pc = GetComponent<PartyController>();
+        bc= GetComponent<BattleController>();
         r = new System.Random();
         SetUpDungeonButtons();
+        uc.TestBattle.onClick.AddListener(delegate { EnterBattle(); });
 
+    }
+    public void EnterBattle ()
+    {
+        bc.StartBattle(pc.PartySlots[0], pc.PartySlots[1]);
+        uc.ScreenActive(2);
     }
     public void SetUpDungeonButtons()
     {
@@ -67,7 +75,7 @@ public class DungeonController : MonoBehaviour
         if (DungeonExplorationResult(dungeon,party))
         {
             dc.DropMysteryBox((int)dungeon._difficulty);
-            GameController.ZDCOINS += dungeon.Prize;
+           // GameController.ZDCOINS += dungeon.Prize;
         }
         Debug.Log(party.index + " SAIU da dungeon" + dungeon.GetDifficulty);        
         OnPartyInDungeon(party, false);

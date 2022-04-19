@@ -1,18 +1,42 @@
 using System;
 using UnityEngine;
+using System.Reflection;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 
+[System.Serializable]
 public class CharBase
 {
-    public string name;
-    public int level;
-    public int cost;
+    public int charID;
+    public string charName;
+    public string charDescripton;
+    public Texture2D charImage;
+    public int charLevel;
+    public int charXP;
+    public int charFatigue;
+    public Aligment charAligment;
+    public int price;
     private int _HP;
     private int _MP;
+    public Roles _charRole;
     public int Health { get; set; }
-    public Rarity rarity;
-    public StandartClass classChar;
-    public Roles role;
+    public Rarity charRarity;
+    public StandartClass charClass; 
+       
+    public Roles charRole
+    {
+        get { return _charRole; }
+        private set
+        {
+            switch (charClass)
+            {
+                case StandartClass.Fighter: _charRole = Roles.Tank; break;
+                case StandartClass.Rogue: _charRole = Roles.DPS; break;
+                case StandartClass.Priest: _charRole = Roles.Healer; break;
+                case StandartClass.Summoner: _charRole = Roles.Controller; break;
+            };
+        }
+    }
     public Actions takingAction;
     public Attacks preferedAttack;
     public AttackBehavior attackBehaviour;
@@ -23,61 +47,73 @@ public class CharBase
     public Dictionary<Actions, bool> ActionsD = new Dictionary<Actions, bool>();
     public Dictionary<Attacks, bool> AttacksD = new Dictionary<Attacks, bool>();
     public Dictionary<CharSkill, bool> SkillsD = new Dictionary<CharSkill, bool>();
-    public bool isAttacker = false;    
+    public bool isAttacker = false;
+    public bool acted;
 
-    public int HP
-    {
+
+    public int HP;
+    /*{
         get { return _HP;}
-        set { if (classChar == StandartClass.Fighter)
+        set {
+            
+            if (charClass == StandartClass.Fighter)
             {
-                _HP = AttributesD[Attributes.Constitution] + 12 + 17 * level;
+                _HP = AttributesD[Attributes.Constitution] + 12 + 17 * charLevel;
             }
-            if (classChar == StandartClass.Priest)
+            if (charClass == StandartClass.Priest)
             {
-                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * level;
+                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
             }
-            if (classChar == StandartClass.Rogue)
+            if (charClass == StandartClass.Rogue)
             {
-                _HP = AttributesD[Attributes.Constitution] + 6 + 4 * level;
+                _HP = AttributesD[Attributes.Constitution] + 6 + 4 * charLevel;
             }
-            if (classChar == StandartClass.Summoner)
+            if (charClass == StandartClass.Summoner)
             {
-                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * level;
+                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
             }
         }
-    }
-    public int MP
-    {
+    }*/
+    public int MP;
+    /*{
         get { return _MP; }
         set
         {
-            if (classChar == StandartClass.Fighter)
+            if (charClass == StandartClass.Fighter)
             {
                 _MP = 0;
             }
-            if (classChar == StandartClass.Priest)
+            if (charClass == StandartClass.Priest)
             {
-                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * level;
+                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
             }
-            if (classChar == StandartClass.Rogue)
+            if (charClass == StandartClass.Rogue)
             {
                 _MP = 0;
             }
-            if (classChar == StandartClass.Summoner)
+            if (charClass == StandartClass.Summoner)
             {
-                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * level;
+                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
             }
         }
-    }
+    }*/
+
+    #region Enums
     public enum AttackBehavior { LowHP, HighHP, LowStrength, HighStrength, LowDextery, HighDextery, RoleT, RoleD, RoleH, RoleC } // comportamentos predefinidos de ataque
     public enum MentalBehaviour { Aggressive, Tactical, Defensive }
+    public enum Aligment 
+    {   
+        ChaoticGood, ChaoticNeutral, ChaoticEvil,
+        NeutralGood, NeutralNeutral, NeutralEvil,
+        LawfullGood, LawfullNeutral, LawfullEvil, 
+    }
     public enum Actions
     {
         Attack,
-        UseSkill,
-        ConsumeItem,
-        CastSpell,
-        Run,
+        Skill,
+        Item,
+        Cast,
+        Escape,
     }
     public enum Attacks
     {
@@ -122,52 +158,74 @@ public class CharBase
     }
     public enum Attributes
     {
-        Strenght,
+        Strength,
         Constitution,
         Dextery,
         Intelligence,
         Wisdom,
         Charisma,
     }
-    public CharBase(string cname, int clevel, int crarity, int cclass)
+    #endregion
+
+    public CharBase()
     {
-        name = cname;
-        level = clevel;
-        rarity = (Rarity)crarity;
-        classChar = (StandartClass)cclass;
-        SetRole(classChar);
-        FillAttributesAndActions();
+
+    }
+    public CharBase(string cname, string cdescripton,int cmentalBehaviour, int clevel, int crarity, int cclass)
+    {
+        charName = cname;
+        charDescripton = cdescripton;
+        charLevel = clevel;
+        mentalBehaviour = (MentalBehaviour)cmentalBehaviour;
+        charRarity = (Rarity)crarity;
+        charClass = (StandartClass)cclass;
+        SetRole(charClass);
     }
     //Construtor do DropsController
     public CharBase(CharBase.Rarity rarity)
     {
-        name = RandomNames.GenerateNameR(6);
-        level = 0;
-        this.rarity = (Rarity)rarity;
-        classChar = (StandartClass)UnityEngine.Random.Range(0,4);
-        SetRole(classChar);
-        FillAttributesAndActions();
+        charName = RandomNames.GenerateNameR(6);
+        charLevel = 0;
+        charRarity = (Rarity)rarity;
+        charClass = (StandartClass)UnityEngine.Random.Range(0,4);
+        SetRole(charClass);
     }
-    private void SetRole(StandartClass c)
+
+    [JsonConstructor]
+    public CharBase(string cname, int cID, int crarity, int cclass)
     {
-        if (c == StandartClass.Fighter) role = Roles.Tank;
-        if (c == StandartClass.Rogue) role = Roles.DPS;
-        if (c == StandartClass.Priest) role = Roles.Healer;
-        if (c == StandartClass.Summoner) role = Roles.Controller;
+        charName = cname;
+        charID = cID;
+        charRarity = (Rarity)crarity;
+        charClass = (StandartClass)cclass; 
     }
-    private void FillAttributesAndActions()
+    public void SetRole(StandartClass c)
     {
-        foreach (string i in Enum.GetNames(typeof(CharBase.Attributes)))
-            AttributesD.Add((Attributes)Enum.Parse(typeof(Attributes), i), UnityEngine.Random.Range(1, 10));
+        switch (c)
+        {      
+            case StandartClass.Fighter: _charRole = Roles.Tank;break;
+            case StandartClass.Rogue: _charRole = Roles.DPS; break;
+            case StandartClass.Priest: _charRole = Roles.Healer; break;
+            case StandartClass.Summoner: _charRole = Roles.Controller; break;
+        }
+    }
+    public void FillAttributesAndActions(string jsonAttribs, bool update)
+    {
+        if (!update)
+        {
+
+            AttributesD = JsonConvert.DeserializeObject<Dictionary<Attributes, int>>(jsonAttribs);
+            foreach (string i in Enum.GetNames(typeof(CharBase.Attributes)))
+            {
+                AttributeBonusD.Add((Attributes)Enum.Parse(typeof(Attributes), i), 0);
+            }
+        }
+           
         foreach (string i in Enum.GetNames(typeof(CharBase.Actions)))
             ActionsD.Add((Actions)Enum.Parse(typeof(Actions), i), false);
         foreach (string i in Enum.GetNames(typeof(CharBase.Attacks)))
             AttacksD.Add((Attacks)Enum.Parse(typeof(Attacks), i), false);
     }
-    public void ClearActions()
-    {
-        foreach (string i in Enum.GetNames(typeof(CharBase.Actions)))
-            ActionsD[(Actions)Enum.Parse(typeof(Actions), i)] = false;
-    } 
+     
 
 }

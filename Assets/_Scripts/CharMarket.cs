@@ -33,11 +33,13 @@ public class CharMarket : MonoBehaviour
             GenerateChar();
     }
 
-    // Creates an Available Char to Hire
+   
+
+
     public void GenerateChar()
     {
-        CharBase charGen = new CharBase(RandomNames.GenerateName(6, r), 0, 0, Random.Range(0, 4));
-        uc.AddGrid(charGen, uc.marketAvailableGrid.transform, MarketAvailableChars, true);
+       // CharBase charGen = new CharBase(RandomNames.GenerateName(6, r), 0, 0, Random.Range(0, 4));
+       // uc.AddGrid(charGen, uc.marketAvailableGrid.transform, MarketAvailableChars, true);
 
     }
 
@@ -51,7 +53,7 @@ public class CharMarket : MonoBehaviour
     {
         foreach (Transform t in uc.marketAvailableGrid.transform)
         {
-            if (t.name == c.name)
+            if (t.name == c.charName)
             {
 
                 Destroy(t.gameObject);

@@ -10,12 +10,13 @@ public class UiController : MonoBehaviour
     public Transform AttribPanel;
     public Transform InfoPanel;
     public Transform DungeonPanel;
-    public Button MysteryBox3, AddToParty, RemoveFromParty;
+    public Transform BattleTabPanel;
+    public Button MysteryBox3, AddToParty, RemoveFromParty, TestBattle;
     public Button[] Dungeon;
     public Transform mainCharGrid;
     public Transform totalPartyGrid;
     public Transform marketAvailableGrid;
-    public Transform[] PartySlotGrid; 
+    public Transform[] PartySlotGrid;
     public GameObject charLinePrefab;
     public GameObject partyLinePrefab;
     public CharBase charOnScreen;
@@ -25,7 +26,8 @@ public class UiController : MonoBehaviour
 
     //testing variables
     public TextMeshProUGUI partyPower;
-    public TextMeshProUGUI dungeonTimer;
+    public TextMeshProUGUI userName;
+    public TextMeshProUGUI zCoins;
 
 
     public delegate void CharOnScreen(CharBase c);
@@ -35,48 +37,53 @@ public class UiController : MonoBehaviour
     private void OnEnable()
     {
         OnCharOnScreen += ShowCharOnScreen;
+        ScreenActive(0); //ativa login
+
     }
 
     // UI LABEL DEVE TER O FINAL DA NOMENCLATURA CORRETA ---->  label + " (" + a + ")"
     public void FillAttribPanel(CharBase charActive)
     {
         int a = 0;
-        Text attribLabel;
-        Text attribValue;
         foreach (CharBase.Attributes i in charActive.AttributesD.Keys)
         {
             string label = "Attrib (" + a + ")";
-            attribLabel = AttribPanel.Find(label).GetComponent<Text>();
+            TextMeshProUGUI attribLabel = AttribPanel.Find(label).GetComponent<TextMeshProUGUI>();
             attribLabel.text = i.ToString();
-            attribValue = attribLabel.transform.Find("value").GetComponent<Text>();
+            TextMeshProUGUI attribValue = attribLabel.transform.Find("value").GetComponent<TextMeshProUGUI>();
             attribValue.text = charActive.AttributesD[i].ToString();
+            a++;
+        }
+        a = 0;
+        //popula os bonus
+        foreach (CharBase.Attributes i in charActive.AttributeBonusD.Keys)
+        {
+            string label = "Attrib (" + a + ")";
+            TextMeshProUGUI attribLabel = AttribPanel.Find(label).GetComponent<TextMeshProUGUI>();
+            attribLabel.text = i.ToString();
+            TextMeshProUGUI attribValue = attribLabel.transform.Find("bonus").GetComponent<TextMeshProUGUI>();
+            attribValue.text = charActive.AttributeBonusD[i].ToString();
             a++;
         }
     }
 
     public void FillInfo(CharBase charActive, Transform parent)
     {
-        Text nameValue;
-        Text levelValue;
-        Text rarityValue;
-        Text classValue;
-        Text roleValue;
-        //Text costValue;
 
-        nameValue = parent.Find("Name").Find("value").GetComponent<Text>();
-        nameValue.text = charActive.name;
+        TextMeshProUGUI nameValue = parent.Find("Name").Find("value").GetComponent<TextMeshProUGUI>();
+        nameValue.text = charActive.charName;
 
-        levelValue = parent.Find("Level").Find("value").GetComponent<Text>();
-        levelValue.text = charActive.level.ToString();
+        TextMeshProUGUI levelValue = parent.Find("Level").Find("value").GetComponent<TextMeshProUGUI>();
+        levelValue.text = charActive.charLevel.ToString();
 
-        rarityValue = parent.Find("Rarity").Find("value").GetComponent<Text>();
-        rarityValue.text = charActive.rarity.ToString();
+        TextMeshProUGUI rarityValue = parent.Find("Rarity").Find("value").GetComponent<TextMeshProUGUI>();
+        rarityValue.text = charActive.charRarity.ToString();
 
-        classValue = parent.Find("Class").Find("value").GetComponent<Text>();
-        classValue.text = charActive.classChar.ToString();
+        TextMeshProUGUI classValue = parent.Find("Class").Find("value").GetComponent<TextMeshProUGUI>();
+        classValue.text = charActive.charClass.ToString();
 
-        roleValue = parent.Find("Role").Find("value").GetComponent<Text>();
-        roleValue.text = charActive.role.ToString();
+        TextMeshProUGUI roleValue = parent.Find("Role").Find("value").GetComponent<TextMeshProUGUI>();
+        roleValue.text = charActive.charRole.ToString();
 
         /*costValue = InfoPanel.Find("Cost").Find("Value").GetComponent<Text>();
         costValue.text = charActive.charCost.ToString();*/
@@ -90,24 +97,29 @@ public class UiController : MonoBehaviour
         if (character.party != null) selectedParty = character.party;
     }
 
-    public void FillCharLine(CharBase character, Transform parent)
+  /*  public void FillCharLine(CharBase character, Transform parent)
     {
         TextMeshProUGUI nameValue = parent.Find("Name").gameObject.GetComponent<TextMeshProUGUI>();
-        nameValue.text = character.name;
+        if(nameValue !=null)
+        nameValue.text = character.charName;
 
         TextMeshProUGUI levelValue = parent.Find("Level").GetComponent<TextMeshProUGUI>();
-        levelValue.text = character.level.ToString();
+        if (nameValue != null)
+            levelValue.text = character.charLevel.ToString();
 
         TextMeshProUGUI rarityValue = parent.Find("Rarity").GetComponent<TextMeshProUGUI>();
-        rarityValue.text = character.rarity.ToString();
+        if (nameValue != null)
+            rarityValue.text = character.charRarity.ToString();
 
         TextMeshProUGUI classValue = parent.Find("Class").GetComponent<TextMeshProUGUI>();
-        classValue.text = character.classChar.ToString();
+        if (nameValue != null)
+            classValue.text = character.charClass.ToString();
 
         TextMeshProUGUI roleValue = parent.Find("Role").GetComponent<TextMeshProUGUI>();
-        roleValue.text = character.role.ToString();
+        if (nameValue != null)
+            roleValue.text = character.charRole.ToString();
 
-    }
+    }*/
 
     public void FillPartyPanel(PartyBase party, DungeonBase dungeon, Transform parent)
     {
@@ -136,26 +148,35 @@ public class UiController : MonoBehaviour
     {
         l.Add(character);
         GameObject newCharLine = (GameObject)Instantiate(charLinePrefab, grid);
-        newCharLine.name = character.name;
-        FillCharLine(character, newCharLine.transform);        
+        newCharLine.name = character.charName;
+        FillInfoLine.FillCharLine(character, newCharLine.transform);
         Button btn1 = newCharLine.GetComponent<Button>();
-        btn1.onClick.AddListener( delegate { OnCharOnScreen(character); });
+        btn1.onClick.AddListener(delegate { OnCharOnScreen(character); });
     }
 
     public void ChangeToOtherGrid(CharBase character, Transform gridAdd, List<CharBase> ladd, Transform gridRem, List<CharBase> lrem)
     {
         try
         {
-            charLinePrefab = gridRem.transform.Find(character.name).gameObject;
-            if(lrem != null) lrem.Remove(character);
-            if(ladd != null) ladd.Add(character);
-            charLinePrefab.transform.SetParent(gridAdd.transform);          
+            charLinePrefab = gridRem.transform.Find(character.charName).gameObject;
+            if (lrem != null) lrem.Remove(character);
+            if (ladd != null) ladd.Add(character);
+            charLinePrefab.transform.SetParent(gridAdd.transform);
         }
         catch
         {
             Debug.Log("not selected");
         }
 
+    }
+
+    public void ScreenActive(int screen)
+    {
+        for(int i = 0; i < Screens.Length; i++)
+        {
+            if (i == screen) Screens[i].SetActive(true);
+            else Screens[i].SetActive(false);
+        }
     }
 
 }
