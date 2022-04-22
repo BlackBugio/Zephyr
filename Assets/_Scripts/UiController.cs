@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Security;
 using UnityEngine.UI;
 
 
@@ -11,7 +12,7 @@ public class UiController : MonoBehaviour
     public Transform InfoPanel;
     public Transform DungeonPanel;
     public Transform BattleTabPanel;
-    public Button MysteryBox3, AddToParty, RemoveFromParty, TestBattle;
+    public Button MysteryBox3, AddToParty, RemoveFromParty, TestBattle, BackToMainScreenButton;
     public Button[] Dungeon;
     public Transform mainCharGrid;
     public Transform totalPartyGrid;
@@ -22,6 +23,10 @@ public class UiController : MonoBehaviour
     public CharBase charOnScreen;
     public PartyBase selectedParty;
     public GameObject[] Screens;
+    public int currentScreen;
+    public Transform feedbackBattlePanel;
+    public Transform endBattlePanel;
+    public GameObject textAnimationFeedback;
 
 
     //testing variables
@@ -37,8 +42,9 @@ public class UiController : MonoBehaviour
     private void OnEnable()
     {
         OnCharOnScreen += ShowCharOnScreen;
+        BattleController.OnFeedbackLine += EnterFeedBAckLine;
         ScreenActive(0); //ativa login
-
+        BackToMainScreenButton.onClick.AddListener(delegate { ScreenActive(1); });
     }
 
     // UI LABEL DEVE TER O FINAL DA NOMENCLATURA CORRETA ---->  label + " (" + a + ")"
@@ -67,23 +73,73 @@ public class UiController : MonoBehaviour
         }
     }
 
-    public void FillInfo(CharBase charActive, Transform parent)
+    public void FillInfo(CharBase character, Transform parent)
     {
+        TextMeshProUGUI textValue;
 
-        TextMeshProUGUI nameValue = parent.Find("Name").Find("value").GetComponent<TextMeshProUGUI>();
-        nameValue.text = charActive.charName;
+        /* foreach (Transform t in parent)
+         {
+             string infoLabel = t.gameObject.GetComponent<TextMeshProUGUI>().text.ToString();
+             textValue = t.Find("value").GetComponent<TextMeshProUGUI>();
+             if (textValue != null)
+                 textValue.text = charActive.charName;
 
-        TextMeshProUGUI levelValue = parent.Find("Level").Find("value").GetComponent<TextMeshProUGUI>();
-        levelValue.text = charActive.charLevel.ToString();
+         }*/
 
-        TextMeshProUGUI rarityValue = parent.Find("Rarity").Find("value").GetComponent<TextMeshProUGUI>();
-        rarityValue.text = charActive.charRarity.ToString();
+        textValue = parent.Find("Name").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charName;
 
-        TextMeshProUGUI classValue = parent.Find("Class").Find("value").GetComponent<TextMeshProUGUI>();
-        classValue.text = charActive.charClass.ToString();
+        textValue = parent.Find("Level").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charLevel.ToString();
 
-        TextMeshProUGUI roleValue = parent.Find("Role").Find("value").GetComponent<TextMeshProUGUI>();
-        roleValue.text = charActive.charRole.ToString();
+        try 
+        {
+            textValue = parent.Find("Rarity").Find("value").GetComponent<TextMeshProUGUI>();
+            if (textValue != null)
+                textValue.text = character.charRarity.ToString();
+        }
+             
+              catch (System.InvalidCastException e)
+        {
+            Debug.LogWarning("Exception : " + e.Message);
+        }
+
+        textValue = parent.Find("Class").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charClass.ToString();
+
+        textValue = parent.Find("Role").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charRole.ToString();
+
+       
+        try
+        {
+                textValue = parent.Find("MP").Find("value").GetComponent<TextMeshProUGUI>();
+            if (textValue != null)
+                textValue.text = character.MP.ToString();
+        }
+
+        catch (System.InvalidCastException e)
+        {
+            if (textValue != null)
+                textValue.text = character.MP.ToString();
+            Debug.LogWarning("Exception : " + e.Message);
+        }
+
+        textValue = parent.Find("Fatigue").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charFatigue.ToString();
+
+        textValue = parent.Find("HP").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.HP.ToString();
+
+        textValue = parent.Find("XP").Find("value").GetComponent<TextMeshProUGUI>();
+        if (textValue != null)
+            textValue.text = character.charXP.ToString();
 
         /*costValue = InfoPanel.Find("Cost").Find("Value").GetComponent<Text>();
         costValue.text = charActive.charCost.ToString();*/
@@ -97,29 +153,6 @@ public class UiController : MonoBehaviour
         if (character.party != null) selectedParty = character.party;
     }
 
-  /*  public void FillCharLine(CharBase character, Transform parent)
-    {
-        TextMeshProUGUI nameValue = parent.Find("Name").gameObject.GetComponent<TextMeshProUGUI>();
-        if(nameValue !=null)
-        nameValue.text = character.charName;
-
-        TextMeshProUGUI levelValue = parent.Find("Level").GetComponent<TextMeshProUGUI>();
-        if (nameValue != null)
-            levelValue.text = character.charLevel.ToString();
-
-        TextMeshProUGUI rarityValue = parent.Find("Rarity").GetComponent<TextMeshProUGUI>();
-        if (nameValue != null)
-            rarityValue.text = character.charRarity.ToString();
-
-        TextMeshProUGUI classValue = parent.Find("Class").GetComponent<TextMeshProUGUI>();
-        if (nameValue != null)
-            classValue.text = character.charClass.ToString();
-
-        TextMeshProUGUI roleValue = parent.Find("Role").GetComponent<TextMeshProUGUI>();
-        if (nameValue != null)
-            roleValue.text = character.charRole.ToString();
-
-    }*/
 
     public void FillPartyPanel(PartyBase party, DungeonBase dungeon, Transform parent)
     {
@@ -174,9 +207,19 @@ public class UiController : MonoBehaviour
     {
         for(int i = 0; i < Screens.Length; i++)
         {
-            if (i == screen) Screens[i].SetActive(true);
+            if (i == screen)
+            {
+                currentScreen = i; Screens[i].SetActive(true);
+            }
             else Screens[i].SetActive(false);
         }
+    }
+
+    public void EnterFeedBAckLine (string message)
+    {      
+        GameObject newFeedbackMsg = Instantiate(Resources.Load("FeedBackText (0)"), feedbackBattlePanel) as GameObject;
+        newFeedbackMsg.transform.SetAsFirstSibling();
+        newFeedbackMsg.GetComponent<TextMeshProUGUI>().text = message;        
     }
 
 }

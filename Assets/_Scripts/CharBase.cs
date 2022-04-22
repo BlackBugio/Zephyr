@@ -16,13 +16,21 @@ public class CharBase
     public int charFatigue;
     public Aligment charAligment;
     public int price;
-    private int _HP;
+    public int HP;
     private int _MP;
+    public bool alive
+    {
+        get
+        {
+            if (HP > 0) return true;
+            else return false;
+        }
+    }
     public Roles _charRole;
-    public int Health { get; set; }
+    public int Health;
     public Rarity charRarity;
-    public StandartClass charClass; 
-       
+    public StandartClass charClass;
+
     public Roles charRole
     {
         get { return _charRole; }
@@ -49,31 +57,33 @@ public class CharBase
     public Dictionary<CharSkill, bool> SkillsD = new Dictionary<CharSkill, bool>();
     public bool isAttacker = false;
     public bool acted;
+    public Transform feedBackReference { get; set;}
 
-
-    public int HP;
-    /*{
-        get { return _HP;}
+    private int _Max_HP;
+    public int Max_HP 
+    { 
+    
+        get { return _Max_HP;}
         set {
             
             if (charClass == StandartClass.Fighter)
             {
-                _HP = AttributesD[Attributes.Constitution] + 12 + 17 * charLevel;
+                _Max_HP = AttributesD[Attributes.Constitution] + 12 + 17 * charLevel;
             }
             if (charClass == StandartClass.Priest)
             {
-                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
+                _Max_HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
             }
             if (charClass == StandartClass.Rogue)
             {
-                _HP = AttributesD[Attributes.Constitution] + 6 + 4 * charLevel;
+                _Max_HP = AttributesD[Attributes.Constitution] + 6 + 4 * charLevel;
             }
             if (charClass == StandartClass.Summoner)
             {
-                _HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
+                _Max_HP = AttributesD[Attributes.Constitution] + 8 + 5 * charLevel;
             }
         }
-    }*/
+    }
     public int MP;
     /*{
         get { return _MP; }
@@ -192,10 +202,12 @@ public class CharBase
     }
 
     [JsonConstructor]
-    public CharBase(string cname, int cID, int crarity, int cclass)
+    public CharBase(string cname, int cID, int crarity, int cclass, int personality, int aligment)
     {
         charName = cname;
         charID = cID;
+        charAligment = (Aligment)aligment;
+        mentalBehaviour = (MentalBehaviour)personality;
         charRarity = (Rarity)crarity;
         charClass = (StandartClass)cclass; 
     }

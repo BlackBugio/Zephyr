@@ -12,21 +12,41 @@ public class BattleController : MonoBehaviour
     public bool isSurpriseAttack;
     public int defenseModifier = 3;
     public bool actionsToTake = true;
+    public int turnCount;
+    public float timeStep = 0.5f;
+    public int battleID;
+
+    public delegate void FeedbackLine(string feedbackMessage);
+    public static event FeedbackLine OnFeedbackLine;
 
     private void Start()
     {
-        uc = GetComponent<UiController>();
+        uc = GetComponent<UiController>();        
     }
     public void DefineBattleSides() // Definine cada em character se é attacker ou defender (partyA ou partyB)
     {
+        Transform partyAPanel =  uc.BattleTabPanel.Find("PartyA Panel").transform;
+        Transform partyBPanel = uc.BattleTabPanel.Find("PartyB Panel").transform;
+        int jvcounter = 0;
         foreach (CharBase character in partyA.CharInParty)
         {
             //chama btn e add list btns;
             character.isAttacker = true;
+            Transform charBattleBtn = partyAPanel.Find("charBattleStat ("+jvcounter+")").transform;
+            charBattleBtn.gameObject.SetActive(true);
+            uc.FillInfo(character, charBattleBtn);
+            character.feedBackReference = charBattleBtn;
+            jvcounter++;
         }
+        jvcounter = 0;
         foreach (CharBase character in partyB.CharInParty)
         {
             character.isAttacker = false;
+            Transform charBattleBtn = partyBPanel.Find("charBattleStat (" + jvcounter + ")").transform;
+            charBattleBtn.gameObject.SetActive(true);
+            uc.FillInfo(character, charBattleBtn);
+            character.feedBackReference = charBattleBtn;
+            jvcounter++;
         }
     }
 
@@ -51,72 +71,78 @@ public class BattleController : MonoBehaviour
         int initTestA = 0;
         int initTestB = 0;
 
-        foreach (CharBase character in partyA.CharInParty)
+        if (CheckLiveParty(partyA))
         {
-            int charInitiative = character.AttributesD[CharBase.Attributes.Dextery] + character.AttributesD[CharBase.Attributes.Intelligence];
-            if (CanAct(character) && charInitiative > initTestA)
+            foreach (CharBase character in partyA.CharInParty)
             {
-                initTestA = charInitiative;
-                nextA = character;
+                int charInitiative = character.AttributesD[CharBase.Attributes.Dextery] + character.AttributesD[CharBase.Attributes.Intelligence];
+                if (CanAct(character) && charInitiative > initTestA)
+                {
+                    initTestA = charInitiative;
+                    nextA = character;
+                }
             }
         }
+        else { EndBattle(partyB); return null; }
 
-        foreach (CharBase character in partyB.CharInParty)
+        if (CheckLiveParty(partyB))
         {
-            int charInitiative = character.AttributesD[CharBase.Attributes.Dextery] + character.AttributesD[CharBase.Attributes.Intelligence];
-            if (CanAct(character) && charInitiative > initTestB)
+            foreach (CharBase character in partyB.CharInParty)
             {
-                initTestB = charInitiative;
-                nextB = character;
+                int charInitiative = character.AttributesD[CharBase.Attributes.Dextery] + character.AttributesD[CharBase.Attributes.Intelligence];
+                if (CanAct(character) && charInitiative > initTestB)
+                {
+                    initTestB = charInitiative;
+                    nextB = character;
+                }
             }
         }
+        else { EndBattle(partyA); return null;}
 
-        if (nextA == null) charTurn = nextB;
-        else if (nextB == null) charTurn = nextA;
-        else if (nextB == null && nextA == null) { EndTurn(); return null; }
-
-        else if (initTestA > initTestB) {charTurn = nextA; Debug.Log("passo do end turn"); }
+        if (initTestA > initTestB) { charTurn = nextA; }
         else if (initTestA < initTestB) charTurn = nextB;
-        else if (initTestA == initTestB) // implementar nega de dex ou int
+        else if (initTestA == initTestB)
         {
             float roll = UnityEngine.Random.Range(0, 2);
             if (roll > 1) charTurn = nextA;
             else charTurn = nextB;
         }
-        
-        Debug.Log(charTurn.charName + "  " + charTurn.mentalBehaviour + " " + charTurn.preferedAttack);
-        return charTurn;
+        else if (initTestA == 0 || initTestB == 0) { Debug.Log("passo do end turn"); return null; }        
+       
+        if(charTurn !=null)
+            return charTurn;
+        else { return null; }
     }
 
     public IEnumerator DecideAction(CharBase character) // etapa de decisão de ação do char, se for nulo chama o endturn pois todos já jogaram
     {   // se for o cpu, decide a acao
-        if (!playerTurn) 
+        
+        if (!playerTurn)
         {
-            Debug.Log("IA decidindo a acao");
             if (character != null) //se for nulo chama o endturn
             {
+                BattleFeedBacks.SelecedFeedback(character, true);
+                OnFeedbackLine("it`s " + character.charName + " turn, he is taking a decision based on " + character.mentalBehaviour + " behaviour");
+                yield return new WaitForSeconds(timeStep);
+
                 switch (character.mentalBehaviour)
                 {
                     case CharBase.MentalBehaviour.Aggressive:
                         {
-                            Debug.Log("Chegou no caso certo agora");
-                             character.attackBehaviour = BehaviuorPerRole(character, CharBase.MentalBehaviour.Aggressive);
-
-                            TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack);
+                            StartCoroutine(TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack));
                             break;
                         }
                     case CharBase.MentalBehaviour.Tactical:
-                        TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack);
+                        StartCoroutine(TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack));
                         break;
                     case CharBase.MentalBehaviour.Defensive:
-                        TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack);
+                        StartCoroutine(TakeAction(character, FindTargetFromBehaviour(character, EnemyParty(character)), CharBase.Actions.Attack));
                         break;
                 }
-
             }
-            else { EndTurn(); }
+            else if(CheckLiveParty(partyA) &&CheckLiveParty(partyB)){ EndTurn(); }
         }
-        else
+        else 
         {
             bool decidedAction = false;
             string msgCallback = "";
@@ -135,7 +161,6 @@ public class BattleController : MonoBehaviour
                     bt.tabButtonText = key.ToString();
                     GameObject panelSlot = battleTab.objectsToSwap[jvcounter].gameObject;
                     
-
                     jvcounter++;
 
                 }
@@ -148,23 +173,23 @@ public class BattleController : MonoBehaviour
 
             CharBase targetA = new CharBase();
             //toma a acao
-
-            TakeAction(character, targetA, actionToTake);
+           
+            StartCoroutine(TakeAction(character, targetA, actionToTake));
         }
         yield return null;
     }
 
-    public void TakeAction(CharBase character, CharBase target, CharBase.Actions action) // toma a ação definida e chama novamente a rolagem de iniciativa para o próximo char
+    public IEnumerator TakeAction(CharBase character, CharBase target, CharBase.Actions action) // toma a ação definida e chama novamente a rolagem de iniciativa para o próximo char
     {
-        Debug.Log("Taking action  " + target);
+        //Debug.Log("Taking action  " + target);
         if (action == CharBase.Actions.Attack)
         {
             switch (character.preferedAttack)
             {
-                case CharBase.Attacks.Melee: AttackAct(character, target, CharBase.Attributes.Strength, CharBase.Attributes.Strength); break;
-                case CharBase.Attacks.Range: AttackAct(character, target, CharBase.Attributes.Dextery, CharBase.Attributes.Dextery); break;
-                case CharBase.Attacks.Ritual: AttackAct(character, target, CharBase.Attributes.Wisdom, CharBase.Attributes.Wisdom); break;
-                case CharBase.Attacks.Magic: AttackAct(character, target, CharBase.Attributes.Intelligence, CharBase.Attributes.Intelligence); break;
+                case CharBase.Attacks.Melee: StartCoroutine (AttackAct(character, target, CharBase.Attributes.Strength, CharBase.Attributes.Strength)); break;
+                case CharBase.Attacks.Range: StartCoroutine (AttackAct(character, target, CharBase.Attributes.Dextery, CharBase.Attributes.Dextery)); break;
+                case CharBase.Attacks.Ritual: StartCoroutine (AttackAct(character, target, CharBase.Attributes.Wisdom, CharBase.Attributes.Wisdom)); break;
+                case CharBase.Attacks.Magic: StartCoroutine (AttackAct(character, target, CharBase.Attributes.Intelligence, CharBase.Attributes.Intelligence)); break;
             }
         }
 
@@ -177,8 +202,17 @@ public class BattleController : MonoBehaviour
         {
             //implementar Itens
         }
-        character.acted = true;
+
+        yield return new WaitUntil(() => character.acted == true);
+        StartCoroutine(TookAction(character));
+    }
+
+    public IEnumerator TookAction(CharBase character)
+    {
+        BattleFeedBacks.SelecedFeedback(character, false);
+        yield return new WaitForSeconds(timeStep);
         StartCoroutine(DecideAction(InitiativeRoll()));
+        
     }
 
     public void EndTurn() // acaba o turno, limpa lista de ações tomadas
@@ -189,7 +223,6 @@ public class BattleController : MonoBehaviour
             {
                 character.acted = false; // limpa a lista de ações do turno
             }
-            else EndBattle(partyB);
         }
 
         foreach (CharBase character in partyB.CharInParty)
@@ -198,36 +231,55 @@ public class BattleController : MonoBehaviour
             {
                 character.acted = false; // limpa a lista de ações do turno
             }
-            else EndBattle(partyA);
         }
+        turnCount++;
         StartCoroutine(DecideAction(InitiativeRoll()));
-    } 
-
-
-
-    public bool CanAct(CharBase character) // testa se alguma ação foi tomada no turno
-    {
-        Debug.Log("char can act?" + character.charName + !character.acted);
-        return !character.acted;
-       
     }
 
     public void EndBattle(PartyBase winner) // finaliza batalha anuncia vencedor
     {
-        Debug.Log(" End BAttle w diubUb Ss");
-    } 
+        StopAllCoroutines();
+        if (winner.name == partyA.name)
+            OnFeedbackLine(" End Battle, winner Party A em " + turnCount + " Turns");
+        else
+            OnFeedbackLine(" End Battle, winner Party B em " + turnCount + " Turns");
+
+        uc.endBattlePanel.gameObject.SetActive(true);
+    }
+    
+    #region Finders ferramentas para se achar
+    public bool CanAct(CharBase character) // testa se alguma ação foi tomada no turno
+    {
+        if (!character.acted && character.alive)
+            return true;
+
+        else return false;
+    }
+
+    public bool CheckLiveParty(PartyBase party)
+    {
+        bool atLeastoneAlive = false;
+        foreach (CharBase character in party.CharInParty)
+        {
+            if (character != null && character.alive)
+            {
+                atLeastoneAlive = true;
+            }
+        }
+        return atLeastoneAlive;
+    }
 
     public PartyBase EnemyParty(CharBase character) // verifica a outra party
     {
         if (character.isAttacker) return partyB;
         else return partyA;
     }
+    #endregion
 
-    // acha targets e seleciona attributos e acoes baseado no perfil de comportamento;
-    #region IA
+    #region IA acha targets e seleciona attributos e acoes baseado no perfil de comportamento;
     public CharBase FindTargetFromBehaviour(CharBase character, PartyBase otherParty) // encontra o target de acordo com o behaviour
     {
-        Debug.Log("finding in party" + character.attackBehaviour);
+        OnFeedbackLine(character.charName +" is choosing target, it is an " + character.attackBehaviour);
         return character.attackBehaviour switch
         {
             CharBase.AttackBehavior.HighDextery => FindAttribInPArty(otherParty, CharBase.Attributes.Dextery, true),
@@ -253,9 +305,11 @@ public class BattleController : MonoBehaviour
         foreach (CharBase enemy in enemyParty.CharInParty)
         {
             if (high)
-             if (enemy.AttributesD[attribute] > highAttrib) { highAttrib = enemy.AttributesD[attribute]; highChar = enemy;}
+            {
+                if (enemy.AttributesD[attribute] > highAttrib) { highAttrib = enemy.AttributesD[attribute]; highChar = enemy; }
+            }            
             else
-                if (enemy.AttributesD[attribute] > lowAttrib) { lowAttrib = enemy.AttributesD[attribute]; lowChar = enemy;}
+                if (enemy.AttributesD[attribute] < lowAttrib) { lowAttrib = enemy.AttributesD[attribute]; lowChar = enemy;}
         }
         if (high) return highChar;
         else return lowChar;
@@ -269,9 +323,12 @@ public class BattleController : MonoBehaviour
         CharBase lowChar = null;
         foreach (CharBase enemy in enemyParty.CharInParty)
         {
-            if (high)
-                if (enemy.HP > highAttrib) { highAttrib = enemy.HP; highChar = enemy; }
             
+            if (high)
+            {
+                if (enemy.HP > highAttrib) { highAttrib = enemy.HP; highChar = enemy; }
+            }
+
             else
                 if (enemy.HP < lowAttrib) { lowAttrib = enemy.HP; lowChar = enemy; }
         }
@@ -286,12 +343,30 @@ public class BattleController : MonoBehaviour
     }
     #endregion
 
-    public void AttackAct (CharBase attacker, CharBase defender, CharBase.Attributes atkAttrib, CharBase.Attributes defAttrib)
+    #region Acts as it says
+    public IEnumerator AttackAct (CharBase attacker, CharBase defender, CharBase.Attributes atkAttrib, CharBase.Attributes defAttrib)
     {
-        Debug.Log(attacker.charName + " atker   " + defender.charName + "   Defender");
-        Debug.Log(defender.HP + "  hp antes");
-        defender.HP = defender.HP - (attacker.AttributesD[atkAttrib] - (defender.AttributesD[defAttrib]));
-        Debug.Log(defender.HP + "  hp depois");
+       StartCoroutine( BattleFeedBacks.ParticleAttack(.5f,attacker.feedBackReference, defender.feedBackReference));
+        OnFeedbackLine(attacker.charName + " is attacking  " + defender.charName + " on " + atkAttrib + " versus " + defAttrib);
+        int damage = (attacker.AttributesD[atkAttrib] - ((defender.AttributesD[defAttrib]) / defenseModifier));
+        defender.HP  -= damage;
+        OnFeedbackLine(defender.charName +" recebeu dano de " + damage + ", hp = "+ defender.HP);
+        BattleFeedBacks.ChangeStatAnim(defender, "HP", damage.ToString());
+
+        if (!defender.alive)
+        {
+            OnFeedbackLine(defender.charName + " foi morto por " + attacker.charName);
+            if (defender.isAttacker) partyA.CharInParty.Remove(defender);
+            else partyB.CharInParty.Remove(defender);
+
+            if (partyA.CharInParty.Count == 0){ EndBattle(partyB); yield return null;}
+            else if (partyB.CharInParty.Count == 0){ EndBattle(partyA); yield return null; }
+        }
+
+        
+        yield return new WaitForSeconds(timeStep);
+
+        attacker.acted = true;
     }
 
     public void SkillAct(CharBase attacker, CharBase defender, CharBase.Attributes atkAttrib, CharBase.Attributes defAttrib)
@@ -302,16 +377,14 @@ public class BattleController : MonoBehaviour
         Debug.Log(defender.HP + "  hp depois");
     }
 
+    #endregion
     public CharBase.AttackBehavior BehaviuorPerRole(CharBase character, CharBase.MentalBehaviour mental )
     {
         switch (character.charRole)
         {
             case CharBase.Roles.Tank:
-
                 {
-                    if (character.AttributesD[CharBase.Attributes.Dextery] > character.AttributesD[CharBase.Attributes.Strength])
-                        character.preferedAttack = CharBase.Attacks.Range;
-                    else character.preferedAttack = CharBase.Attacks.Melee;
+                    character.preferedAttack = CharBase.Attacks.Melee;
 
                     if (UnityEngine.Random.Range(0, 2) < 1) return CharBase.AttackBehavior.HighHP;
                     else return CharBase.AttackBehavior.HighStrength;
