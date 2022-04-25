@@ -32,7 +32,7 @@ public class BattleController : MonoBehaviour
         {
             //chama btn e add list btns;
             character.isAttacker = true;
-            Transform charBattleBtn = partyAPanel.Find("charBattleStat ("+jvcounter+")").transform;
+            Transform charBattleBtn = partyAPanel.Find("CharBar ("+jvcounter+")").transform;
             charBattleBtn.gameObject.SetActive(true);
             uc.FillInfo(character, charBattleBtn);
             character.feedBackReference = charBattleBtn;
@@ -42,7 +42,7 @@ public class BattleController : MonoBehaviour
         foreach (CharBase character in partyB.CharInParty)
         {
             character.isAttacker = false;
-            Transform charBattleBtn = partyBPanel.Find("charBattleStat (" + jvcounter + ")").transform;
+            Transform charBattleBtn = partyBPanel.Find("CharBar (" + jvcounter + ")").transform;
             charBattleBtn.gameObject.SetActive(true);
             uc.FillInfo(character, charBattleBtn);
             character.feedBackReference = charBattleBtn;

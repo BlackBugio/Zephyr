@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{0e4b08fb-9d3c-46c9-850f-a07b96b1e85a}">
+		<property name="name">
+			<value>HighTense</value>
+		</property>
+		<relationship name="folder">
+			<destination>{df8ac60b-6c51-4e64-9d30-f93d800c7a37}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{e5ecbbf5-1490-4510-af34-32e6ac72f6fb}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{e5ecbbf5-1490-4510-af34-32e6ac72f6fb}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{f4ffcb2c-437c-46a8-9705-56abb788ee4b}">
+		<property name="assetPath">
+			<value>mining.ogg</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.230375</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{fc0a9ceb-559e-4987-8b4f-0e1782908310}</destination>
+		</relationship>
+	</object>
+</objects>

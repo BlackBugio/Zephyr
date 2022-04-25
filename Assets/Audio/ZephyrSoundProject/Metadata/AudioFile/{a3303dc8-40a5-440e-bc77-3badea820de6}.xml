@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{a3303dc8-40a5-440e-bc77-3badea820de6}">
+		<property name="assetPath">
+			<value>triceratops-1.ogg</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.7493877551020409</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{fc0a9ceb-559e-4987-8b4f-0e1782908310}</destination>
+		</relationship>
+	</object>
+</objects>

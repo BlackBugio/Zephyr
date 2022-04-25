@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{063f3e7a-7f16-47b4-aa14-31bbca15079e}">
+		<property name="assetPath">
+			<value>Nean_Varum.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.6718367346938776</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{fc0a9ceb-559e-4987-8b4f-0e1782908310}</destination>
+		</relationship>
+	</object>
+</objects>

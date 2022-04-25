@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{7159525b-0ab8-46cf-8cac-427e800c9e8f}">
+		<property name="assetPath">
+			<value>mining_1.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.6559999999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{fc0a9ceb-559e-4987-8b4f-0e1782908310}</destination>
+		</relationship>
+	</object>
+</objects>

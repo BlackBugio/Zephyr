@@ -10,14 +10,14 @@ public class CharBase
     public int charID;
     public string charName;
     public string charDescripton;
-    public Texture2D charImage;
+    public string charImagePath;
     public int charLevel;
     public int charXP;
     public int charFatigue;
     public Aligment charAligment;
     public int price;
     public int HP;
-    private int _MP;
+    public int MP;
     public bool alive
     {
         get
@@ -60,9 +60,9 @@ public class CharBase
     public Transform feedBackReference { get; set;}
 
     private int _Max_HP;
+    private int _Max_MP;
     public int Max_HP 
     { 
-    
         get { return _Max_HP;}
         set {
             
@@ -84,29 +84,29 @@ public class CharBase
             }
         }
     }
-    public int MP;
-    /*{
-        get { return _MP; }
+    public int Max_MP
+    { 
+        get { return _Max_MP; }
         set
         {
             if (charClass == StandartClass.Fighter)
             {
-                _MP = 0;
+                _Max_MP = 0;
             }
             if (charClass == StandartClass.Priest)
             {
-                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
+                _Max_MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
             }
             if (charClass == StandartClass.Rogue)
             {
-                _MP = 0;
+                _Max_MP = 0;
             }
             if (charClass == StandartClass.Summoner)
             {
-                _MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
+                _Max_MP = AttributesD[Attributes.Wisdom] + 1 + 1 * charLevel;
             }
         }
-    }*/
+    }
 
     #region Enums
     public enum AttackBehavior { LowHP, HighHP, LowStrength, HighStrength, LowDextery, HighDextery, RoleT, RoleD, RoleH, RoleC } // comportamentos predefinidos de ataque
@@ -202,14 +202,16 @@ public class CharBase
     }
 
     [JsonConstructor]
-    public CharBase(string cname, int cID, int crarity, int cclass, int personality, int aligment)
+    public CharBase(string cname, int cID, int crarity, int cclass, int personality, int aligment, string chardescription, string image)
     {
         charName = cname;
         charID = cID;
         charAligment = (Aligment)aligment;
         mentalBehaviour = (MentalBehaviour)personality;
         charRarity = (Rarity)crarity;
-        charClass = (StandartClass)cclass; 
+        charClass = (StandartClass)cclass;
+        charDescripton = chardescription;
+        charImagePath = image;
     }
     public void SetRole(StandartClass c)
     {

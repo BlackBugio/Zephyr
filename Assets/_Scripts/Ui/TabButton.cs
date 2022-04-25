@@ -21,7 +21,6 @@ public class TabButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandl
     void Start()
     {
         background = GetComponent<Image>();
-        transform.Find("Text").GetComponent<TMPro.TextMeshProUGUI>().text = tabButtonText;
     }
 
     #region PointerHandle

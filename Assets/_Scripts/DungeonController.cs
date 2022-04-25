@@ -26,13 +26,14 @@ public class DungeonController : MonoBehaviour
         bc= GetComponent<BattleController>();
         r = new System.Random();
         SetUpDungeonButtons();
-        uc.TestBattle.onClick.AddListener(delegate { EnterBattle(); });
+        uc.TestBattle.onClick.AddListener(delegate { EnterVersusBattle(); });
 
     }
-    public void EnterBattle ()
+    public void EnterVersusBattle ()
     {
+        uc.AdventureSelectionPanel.gameObject.SetActive(false);
         bc.StartBattle(pc.PartySlots[0], pc.PartySlots[1]);
-        uc.ScreenActive(2);
+        uc.ScreenActive(5);
     }
     public void SetUpDungeonButtons()
     {
@@ -47,17 +48,27 @@ public class DungeonController : MonoBehaviour
 
     public void EnterDungeon(DungeonBase dungeon)
     {
-        PartyBase partyInDungeon =  pc.selectedParty;
+
+        PartyBase partyInDungeon = pc.selectedParty;
+        Debug.Log(partyInDungeon.inDungeon+"    " + partyInDungeon.HasMinParty()+" " + partyInDungeon.CharInParty.Count);
         if (!partyInDungeon.inDungeon && partyInDungeon.HasMinParty())
         {
-            InDungeonPanel(dungeon, partyInDungeon,true);
+            InDungeonPanel(dungeon, partyInDungeon, true);
             Debug.Log(partyInDungeon.index);
             InDungeonParty.Add(partyInDungeon);
             OnPartyInDungeon(partyInDungeon, true);
-            Debug.Log(partyInDungeon.index + " Entrou na dungeon " + dungeon.GetDifficulty);            
+            Debug.Log(partyInDungeon.index + " Entrou na dungeon " + dungeon.GetDifficulty);
+            uc.AdventureSelectionPanel.gameObject.SetActive(false);
+            uc.ScreenActive(2); // panel missions
             StartCoroutine(ExitDungeon(dungeon, partyInDungeon, dungeon.Duration));
+
         }
-        else Debug.Log(partyInDungeon.index + " JÁ está na dungeon" + dungeon.GetDifficulty);
+        else
+        {
+            Debug.Log(partyInDungeon.index + " JÁ está na dungeon" + dungeon.GetDifficulty);
+
+
+        }
     }
 
     public bool DungeonExplorationResult(DungeonBase dungeon, PartyBase party)

@@ -16,7 +16,7 @@ public class PartyBase
 
     public bool HasMinParty()
     {
-        if (partyQuant >= minPartyQuant) return true;
+        if (CharInParty.Count >= minPartyQuant) return true;
         else return false;
     }
     public float PartyPower {

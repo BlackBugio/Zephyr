@@ -63,7 +63,7 @@ public class UserController : MonoBehaviour
                 case "wrongpass": loginFeedback.text = "Wrong password"; SaveUser(); break;
                 default:
                 {
-                    SaveUser(); uc.ScreenActive(1);
+                    SaveUser(); uc.ScreenActive(0);
                     playerData = JsonConvert.DeserializeObject<UserData>(message);
                     UpdatePlayerData();
                     StartCoroutine(web.GetCharacterID(playerData.ID));

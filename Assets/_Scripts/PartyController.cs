@@ -12,8 +12,8 @@ public class PartyController : MonoBehaviour
     public PartyBase selectedParty;
     public TabGroup tabGroup;
 
-    public List<CharBase> TotalParty = new List<CharBase>();
-    public List<PartyBase> PartySlots = new List<PartyBase>();
+    public List<CharBase> TotalParty = new List<CharBase>(); // ref all charbases without slots
+    public List<PartyBase> PartySlots = new List<PartyBase>(); // ref 4 different slots composed by charbases
 
     private const int maxPartySlots = 4;
     private const int maxPartyQuant = 5;
@@ -95,7 +95,7 @@ public class PartyController : MonoBehaviour
     {
         if (selectedParty.CharInParty.Count < maxPartyQuant && !selectedParty.inDungeon)
         {
-            uc.ChangeToOtherGrid(uc.charOnScreen, uc.PartySlotGrid[selectedParty.index], selectedParty.CharInParty, uc.totalPartyGrid, TotalParty);
+            uc.ChangeToOtherGrid(uc.charOnScreen, uc.PartySlotGrid[selectedParty.index], selectedParty.CharInParty, uc.totalPartyGrid, TotalParty, "CharLine");
             selectedParty.partyQuant++;
             UpdatePartyPower();
         }
@@ -106,7 +106,7 @@ public class PartyController : MonoBehaviour
     {
         if (!selectedParty.inDungeon)
         {
-            uc.ChangeToOtherGrid(uc.charOnScreen, uc.totalPartyGrid, TotalParty, uc.PartySlotGrid[selectedParty.index], selectedParty.CharInParty);
+            uc.ChangeToOtherGrid(uc.charOnScreen, uc.totalPartyGrid, TotalParty, uc.PartySlotGrid[selectedParty.index], selectedParty.CharInParty, "CharBar");
             selectedParty.partyQuant--;
             UpdatePartyPower();
         }

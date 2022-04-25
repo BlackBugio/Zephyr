@@ -15,9 +15,30 @@ public class TabGroup : MonoBehaviour
     public List<GameObject> objectsToSwap;
     public PanelGroup panelGroup;
 
+    private Transform btnsTop;
+    private GameObject[] btnsLeft;
+    private GameObject[] btnsBottom;
+    private GameObject[] btnsRight;
+
+
     public delegate void TabActive(int tabIndex);
     public static event TabActive OnTabActive;
-      
+
+    private void Start()
+    {
+
+        btnsTop = transform.Find("Btns Top");
+        if (btnsTop != null)
+        {
+            foreach (GameObject g in btnsTop)
+            {
+                if (g.activeSelf) Subscribe(g.GetComponent<TabButton>());
+
+            }
+        }
+        
+    }
+
     public void Subscribe(TabButton button)
     {
         if (tabButtons == null) tabButtons = new List<TabButton>();
